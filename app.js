@@ -21,7 +21,7 @@ app.use((error, req, res, next) => {
 
 mongoose.connect(process.env.MONGO_URI).then((result)=>{
     console.log("connected to database");
-    app.listen(8000);
+    app.listen(7000);
 }).catch((err)=>{
     console.log(err)
 })

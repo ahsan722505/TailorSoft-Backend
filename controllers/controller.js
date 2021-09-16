@@ -9,7 +9,9 @@ exports.postOrder=(req,res,next)=>{
         email :req.body.email,
         measurements : req.body.measurements
     })
+    let clientData;
     client.save().then(result=>{
+        clientData=result;
         // console.log(result)
         const order=new Order({
             returnDate : req.body.returnDate,
@@ -20,7 +22,9 @@ exports.postOrder=(req,res,next)=>{
             clientId : result._id
         })
         order.save().then((result)=>{
-            res.status(201).json({success : true})
+            result.clientId=clientData;
+            
+            res.status(201).json({clientData : result})
         }).catch(err=>{
             if(!err.statusCode) err.statusCode=500;
             next(err)
@@ -33,6 +37,7 @@ exports.postOrder=(req,res,next)=>{
 }
 exports.getPendOrders=(req,res,next)=>{
     Order.find({pending : true}).populate("clientId").exec().then((orders)=>{
+        console.log(orders)
         res.status(200).json({orders : orders})
     }).catch(err=>{
         if(!err.statusCode) err.statusCode=500;
