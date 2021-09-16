@@ -31,3 +31,11 @@ exports.postOrder=(req,res,next)=>{
     })
     
 }
+exports.getPendOrders=(req,res,next)=>{
+    Order.find({pending : true}).populate("clientId").exec().then((orders)=>{
+        res.status(200).json({orders : orders})
+    }).catch(err=>{
+        if(!err.statusCode) err.statusCode=500;
+        next(err)
+    })
+}

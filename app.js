@@ -7,7 +7,7 @@ app.use(cors());
 app.use(express.json());
 const apis=require("./routes/api");
 app.use((req,res,next)=>{
-    console.log("request coming..")
+    // console.log("request coming..")
     req.clientId="6141a67bd3cbf4ca915ef83d"
     next()
 })
@@ -21,7 +21,7 @@ app.use((error, req, res, next) => {
 
 mongoose.connect(process.env.MONGO_URI).then((result)=>{
     console.log("connected to database");
-    app.listen(8080);
+    app.listen(8000);
 }).catch((err)=>{
     console.log(err)
 })
