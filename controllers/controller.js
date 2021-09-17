@@ -44,3 +44,29 @@ exports.getPendOrders=(req,res,next)=>{
         next(err)
     })
 }
+exports.updateOrder=(req,res,next)=>{
+    let clientData;
+    const update={name : req.body.name,
+        email :req.body.email,
+        measurements : req.body.measurements}
+        const filter={_id : req.body.clientId}
+    Client.findOneAndUpdate(filter,update,{new : true}).then((client)=>{
+        clientData=client
+        const update={returnDate : req.body.returnDate,
+            price : req.body.price,
+            cloth : req.body.cloth,
+            }
+            const filter={_id : req.body.orderId }
+            Order.findOneAndUpdate(filter,update,{new : true}).then((order)=>{
+                    order.clientId=clientData;
+                    res.status(201).json({clientData : order})
+                    console.log(order)
+            }).catch(err=>{
+                if(!err.statusCode) err.statusCode=500;
+                next(err)
+            })
+    }).catch(err=>{
+        if(!err.statusCode) err.statusCode=500;
+        next(err)
+    })
+}
