@@ -70,3 +70,14 @@ exports.updateOrder=(req,res,next)=>{
         next(err)
     })
 }
+exports.deleteOrder=(req,res,next)=>{
+    console.log("deleting")
+    console.log(req.body.orderId);
+    Order.findByIdAndDelete(req.body.orderId).then(()=>{
+        console.log("success")
+        res.status(200).json({success : true})
+    }).catch(err=>{
+        if(!err.statusCode) err.statusCode=500;
+        next(err)
+    })
+}
