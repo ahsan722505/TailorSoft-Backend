@@ -37,7 +37,7 @@ exports.postOrder=(req,res,next)=>{
 }
 exports.getPendOrders=(req,res,next)=>{
     Order.find({pending : true}).populate("clientId").exec().then((orders)=>{
-        console.log(orders)
+        // console.log(orders)
         res.status(200).json({orders : orders})
     }).catch(err=>{
         if(!err.statusCode) err.statusCode=500;
@@ -71,10 +71,20 @@ exports.updateOrder=(req,res,next)=>{
     })
 }
 exports.deleteOrder=(req,res,next)=>{
-    console.log("deleting")
-    console.log(req.body.orderId);
+    // console.log("deleting")
+    // console.log(req.body.orderId);
     Order.findByIdAndDelete(req.body.orderId).then(()=>{
-        console.log("success")
+        // console.log("success")
+        res.status(200).json({success : true})
+    }).catch(err=>{
+        if(!err.statusCode) err.statusCode=500;
+        next(err)
+    })
+}
+exports.completeOrder=(req,res,next)=>{
+    const filter={_id : req.body.orderId};
+    const update={pending : false}
+    Order.findOneAndUpdate(filter,update).then(()=>{
         res.status(200).json({success : true})
     }).catch(err=>{
         if(!err.statusCode) err.statusCode=500;
