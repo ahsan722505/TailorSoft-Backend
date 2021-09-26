@@ -91,3 +91,13 @@ exports.completeOrder=(req,res,next)=>{
         next(err)
     })
 }
+exports.getClient=(req,res,next)=>{
+    const clientName=req.query.name;
+    Client.find({ name : { $regex: new RegExp(clientName), $options: 'i' } }).then(clients=>{
+        // console.log(clients);
+        res.status(200).json({clients : clients});
+    }).catch(err=>{
+        if(!err.statusCode) err.statusCode=500;
+        next(err)
+    })
+}
