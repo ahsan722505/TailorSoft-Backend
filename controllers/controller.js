@@ -3,36 +3,43 @@ const Owner=require("../models/Owner")
 const Client=require("../models/Client")
 
 exports.postOrder=(req,res,next)=>{
-    // console.log(req.body)
-    const client=new Client({
-        name : req.body.name,
-        email :req.body.email,
-        measurements : req.body.measurements
-    })
-    let clientData;
+    
+    if(req.query.existing == "true"){
+        
+        const update={name : req.body.name,
+            email :req.body.email,
+            measurements : req.body.measurements}
+            const filter={_id : req.body.clientId}
+            Client.findOneAndUpdate(filter,update,{new : true}).then(client=>{
+                
+                req.clientData=client
+                next()
+            }).catch(err=>{
+                if(!err.statusCode) err.statusCode=500;
+                next(err)
+            })
+    }
+    else{
+        
+        const client=new Client({
+            name : req.body.name,
+            email :req.body.email,
+            measurements : req.body.measurements
+        })
+        
+
+    
     client.save().then(result=>{
-        clientData=result;
-        // console.log(result)
-        const order=new Order({
-            returnDate : req.body.returnDate,
-            price : req.body.price,
-            cloth : req.body.cloth,
-            pending : true,
-            ownerId : req.clientId,
-            clientId : result._id
-        })
-        order.save().then((result)=>{
-            result.clientId=clientData;
-            
-            res.status(201).json({clientData : result})
-        }).catch(err=>{
-            if(!err.statusCode) err.statusCode=500;
-            next(err)
-        })
+        
+        
+        
+        req.clientData=result;
+        next();
     }).catch(err=>{
         if(!err.statusCode) err.statusCode=500;
         next(err)
     })
+}
     
 }
 exports.getPendOrders=(req,res,next)=>{
@@ -96,6 +103,24 @@ exports.getClient=(req,res,next)=>{
     Client.find({ name : { $regex: new RegExp(clientName), $options: 'i' } }).then(clients=>{
         // console.log(clients);
         res.status(200).json({clients : clients});
+    }).catch(err=>{
+        if(!err.statusCode) err.statusCode=500;
+        next(err)
+    })
+}
+exports.makeOrders=(req,res,next)=>{
+    const order=new Order({
+        returnDate : req.body.returnDate,
+        price : req.body.price,
+        cloth : req.body.cloth,
+        pending : true,
+        ownerId : req.clientId,
+        clientId : req.clientData._id
+    })
+    order.save().then((result)=>{
+        result.clientId=req.clientData;
+        
+        res.status(201).json({clientData : result})
     }).catch(err=>{
         if(!err.statusCode) err.statusCode=500;
         next(err)

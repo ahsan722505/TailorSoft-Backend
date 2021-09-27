@@ -1,7 +1,7 @@
 const express=require("express");
 const controllers=require("../controllers/controller");
 const router=express.Router();
-router.post("/postOrder",controllers.postOrder);
+router.post("/postOrder",controllers.postOrder,controllers.makeOrders);
 router.get("/getPendOrders",controllers.getPendOrders);
 router.put("/updateOrder",controllers.updateOrder);
 router.delete("/deleteOrder",controllers.deleteOrder)
