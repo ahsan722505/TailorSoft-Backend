@@ -8,7 +8,8 @@ app.use(express.json());
 const apis=require("./routes/api");
 app.use((req,res,next)=>{
     // console.log("request coming..")
-    req.clientId="6141a67bd3cbf4ca915ef83d"
+    req.email="ahsantahir722505@gmail.com";
+    req.clientId="6141a67bd3cbf4ca915ef83d";
     next()
 })
 app.use("/api",apis);

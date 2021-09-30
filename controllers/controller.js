@@ -1,6 +1,9 @@
 const Order=require("../models/Order")
 const Owner=require("../models/Owner")
 const Client=require("../models/Client")
+const nodemailer = require('nodemailer');
+const sendMail=require("../helpers/helpers").sendMail;
+require("dotenv").config()
 
 exports.postOrder=(req,res,next)=>{
     
@@ -91,7 +94,17 @@ exports.deleteOrder=(req,res,next)=>{
 exports.completeOrder=(req,res,next)=>{
     const filter={_id : req.body.orderId};
     const update={pending : false}
-    Order.findOneAndUpdate(filter,update).then(()=>{
+    Order.findOneAndUpdate(filter,update,{new : true}).then((order)=>{
+        
+        Client.findById(order.clientId).then(client=>{
+            sendMail(client.email,"order completion","Your order is completed kindly pick it up").then(info=>{
+                    // pass
+            }).catch(err=>{
+                // pass
+            })
+        }).catch((err)=>{
+            console.log(err);
+        })
         res.status(200).json({success : true})
     }).catch(err=>{
         if(!err.statusCode) err.statusCode=500;
@@ -121,6 +134,15 @@ exports.makeOrders=(req,res,next)=>{
         result.clientId=req.clientData;
         
         res.status(201).json({clientData : result})
+    }).catch(err=>{
+        if(!err.statusCode) err.statusCode=500;
+        next(err)
+    })
+}
+exports.postMail=(req,res,next)=>{
+    
+    sendMail(req.body.email,req.body.subject,req.body.mail).then(info=>{
+        res.status(200).json({success : true});
     }).catch(err=>{
         if(!err.statusCode) err.statusCode=500;
         next(err)

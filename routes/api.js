@@ -7,4 +7,5 @@ router.put("/updateOrder",controllers.updateOrder);
 router.delete("/deleteOrder",controllers.deleteOrder)
 router.patch("/completeOrder",controllers.completeOrder);
 router.get("/getClient",controllers.getClient);
+router.post("/postMail",controllers.postMail)
 module.exports=router;
