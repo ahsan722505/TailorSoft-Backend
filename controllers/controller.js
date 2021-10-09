@@ -2,6 +2,7 @@ const Order=require("../models/Order")
 const Owner=require("../models/Owner")
 const Client=require("../models/Client")
 const nodemailer = require('nodemailer');
+const jwt=require("jsonwebtoken");
 const sendMail=require("../helpers/helpers").sendMail;
 require("dotenv").config()
 
@@ -148,3 +149,118 @@ exports.postMail=(req,res,next)=>{
         next(err)
     })
 }
+exports.getAuthState=(req,res,next)=>{
+    const authHeader = req.headers["authorization"];
+    const token = authHeader.split(" ")[1];
+    if (!token) {
+      res.status(401).json({ authenticated: false });
+      return;
+    }
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, owner) => {
+      if (err || !owner) {
+        res.status(401).json({ authenticated: false });
+        return;
+      }
+      res.status(200).json({authenticated : true , email : owner.email , username : owner.username , ownerId : owner._id})
+    });
+    
+}
+exports.postSignUp=(req,res,next)=>{
+    console.log("request here");
+    
+        let usernameExist;
+        let emailExist;
+        Owner.findOne({ email: req.body.email })
+          .then((owner) => {
+            if (owner) {
+              emailExist = true;
+            } else {
+              emailExist = false;
+            }
+            Owner.findOne({ username: req.body.username })
+              .then((owner) => {
+                if (owner) {
+                  usernameExist = true;
+                } else {
+                  usernameExist = false;
+                }
+                if (usernameExist && !emailExist) {
+                  res.status(401).json({message : "username already exists"});
+                } else if (emailExist && !usernameExist) {
+                  res.status(401).json({message : "email already exists"});
+                } else if (emailExist && usernameExist) {
+                  res.status(401).json({message :"username and email already exists."});
+                } else {
+                  const owner = new Owner(req.body);
+                  owner
+                    .save()
+                    .then((owner) => {
+                      const accessToken = jwt.sign(
+                        {
+                          _id: owner._id,
+                          username: owner.username,
+                          email: owner.email,
+                          
+                        },
+                        process.env.ACCESS_TOKEN_SECRET
+                      );
+                      res.status(201).json({
+                        accessToken: accessToken,
+                        username : owner.username,
+                        email : owner.email,
+                        ownerId : owner._id,
+                        
+                      });
+                    })
+                    .catch((err) => {
+                      if(!err.statusCode) err.statusCode=500;
+        next(err)
+                    });
+                }
+              })
+              .catch((err) => {
+                if(!err.statusCode) err.statusCode=500;
+        next(err)
+              });
+          })
+          .catch((err) => {
+            if(!err.statusCode) err.statusCode=500;
+        next(err)
+          });
+      
+}
+exports.postLogin = (req, res, next) => {
+    Owner.findOne({
+      password: req.body.password,
+      $or: [{ email: req.body.emailOrUser }, { username: req.body.emailOrUser }],
+    })
+      .then((owner) => {
+        
+        if (!owner) {
+          res.status(401).json({message : "invalid credentials"});
+        } else {
+          
+          const accessToken = jwt.sign(
+            {
+              _id: owner.id,
+              username: owner.username,
+              email: owner.email,
+              
+            },
+            process.env.ACCESS_TOKEN_SECRET
+          );
+          
+          res.status(200).json({
+            accessToken: accessToken,
+            username : owner.username,
+            email : owner.email,
+            ownerId : owner._id,
+            
+          });
+        }
+      })
+      .catch((err) => {
+        if(!err.statusCode) err.statusCode=500;
+    next(err)
+      });
+  };
