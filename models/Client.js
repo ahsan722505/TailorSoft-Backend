@@ -12,7 +12,12 @@ const clientSchema = new Schema({
   measurements : {
       type : String,
       required : true,
-  }
+  },
+  ownerId :{
+    type: Schema.Types.ObjectId,
+required: true,
+ref: "Owner",
+}
   
 });
 module.exports = mongoose.model("Client", clientSchema);

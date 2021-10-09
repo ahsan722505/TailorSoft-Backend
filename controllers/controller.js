@@ -28,7 +28,8 @@ exports.postOrder=(req,res,next)=>{
         const client=new Client({
             name : req.body.name,
             email :req.body.email,
-            measurements : req.body.measurements
+            measurements : req.body.measurements,
+            ownerId : req.body.ownerId
         })
         
 
@@ -47,7 +48,7 @@ exports.postOrder=(req,res,next)=>{
     
 }
 exports.getPendOrders=(req,res,next)=>{
-    Order.find({pending : true}).populate("clientId").exec().then((orders)=>{
+    Order.find({pending : true , ownerId : req.query.ownerId}).populate("clientId").exec().then((orders)=>{
         // console.log(orders)
         res.status(200).json({orders : orders})
     }).catch(err=>{
@@ -114,7 +115,7 @@ exports.completeOrder=(req,res,next)=>{
 }
 exports.getClient=(req,res,next)=>{
     const clientName=req.query.name;
-    Client.find({ name : { $regex: new RegExp(clientName), $options: 'i' } }).then(clients=>{
+    Client.find({ name : { $regex: new RegExp(clientName), $options: 'i' } , ownerId : req.query.ownerId }).then(clients=>{
         // console.log(clients);
         res.status(200).json({clients : clients});
     }).catch(err=>{
@@ -128,7 +129,7 @@ exports.makeOrders=(req,res,next)=>{
         price : req.body.price,
         cloth : req.body.cloth,
         pending : true,
-        ownerId : req.clientId,
+        ownerId : req.body.ownerId,
         clientId : req.clientData._id
     })
     order.save().then((result)=>{
@@ -264,3 +265,27 @@ exports.postLogin = (req, res, next) => {
     next(err)
       });
   };
+exports.changePassword=(req,res,next)=>{
+  console.log("request coming");
+  Owner.findOne({_id : req.query.ownerId}).then(owner=>{
+    if(!owner){
+      res.status(401).json({message : "no owner"});
+      return;
+    }
+    if(owner.password !== req.body.currentPassword){
+      res.status(401).json({message : "invalid password"});
+      return;
+    }
+    owner.password=req.body.newPassword;
+    owner.save().then(data=>{
+      res.status(200).json({message : "success"});
+    }).catch((err) => {
+      if(!err.statusCode) err.statusCode=500;
+  next(err)
+    })
+
+  }).catch((err) => {
+    if(!err.statusCode) err.statusCode=500;
+next(err)
+  })
+}

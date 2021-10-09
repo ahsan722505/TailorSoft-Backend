@@ -11,4 +11,5 @@ router.post("/postMail",controllers.postMail);
 router.get("/getAuthState",controllers.getAuthState);
 router.post("/postSignUp",controllers.postSignUp)
 router.post("/postLogin",controllers.postLogin)
+router.patch("/changePassword",controllers.changePassword);
 module.exports=router;
